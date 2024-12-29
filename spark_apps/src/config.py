@@ -8,7 +8,14 @@ logging.basicConfig(
 )
 LOGGER = logging.getLogger(__name__)
 
-SPARK = SparkSession.builder.appName("gd-challenge").getOrCreate()
+SPARK = (
+    SparkSession.builder
+    .appName("gd-challenge")
+    .config("spark.executor.instances", 6)
+    .config("spark.executor.cores", 4)
+    .config("spark.executor.memory", "3g")
+    .getOrCreate()
+)
 
 EVENTS_PATH = "/opt/spark/data/bronze/events.csv.gz"
 FREE_SMS_PATH = "/opt/spark/data/bronze/free_sms_destinations.csv.gz"

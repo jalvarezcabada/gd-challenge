@@ -37,7 +37,7 @@ services:
       - '18080:18080'
 
   spark-worker:
-    container_name: da-spark-worker
+    # container_name: da-spark-worker
     image: da-spark-image
     entrypoint: ['./entrypoint.sh', 'worker']
     depends_on:
