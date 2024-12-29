@@ -113,8 +113,15 @@ SparkSession.builder \
     .config("spark.executor.instances", 6) \  # Total de cores 18 / Total de nodos 3
     .config("spark.executor.cores", 3) \     # Total de cores 18 / Total de executors 6
     .config("spark.executor.memory", "12g") \ # Total de memoria 75 / Total de executors 6
+    .config("spark.dynamicAllocation.enabled", "false") \  # Establece los recursos como fijos, no dinámicos
     .getOrCreate()
 ```
+
+- Número de ejecutores (`spark.executor.instances`): Se asignan 6 ejecutores, lo que permite utilizar todos los 18 cores asignados (3 cores por ejecutor).
+
+- Cores por ejecutor (`spark.executor.cores`): A cada ejecutor se le asignan 3 cores (esto asegura que el trabajo esté bien distribuido entre los ejecutores, sin que cada uno utilice más cores de los necesarios).
+
+- Memoria por ejecutor (`spark.executor.memory`): Se asignan 12 GB de memoria a cada ejecutor (esto permite usar toda la memoria asignada de 75 GB de manera eficiente).
 
 ### Limitar Recursos por Cola de YARN
 
