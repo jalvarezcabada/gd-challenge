@@ -53,19 +53,15 @@ Aquí está el histograma generado:
 
 **a) ¿Cómo priorizaría los procesos productivos sobre los procesos de análisis exploratorios?**
 
-**Priorización con colas de recursos:**
-    Configuraría el cluster Hadoop con un sistema de colas de recursos. Las colas asociadas a los procesos productivos recibirían una mayor prioridad (mayor porcentaje de recursos) mientras que las colas para análisis exploratorio tendrían un límite inferior de recursos.
+- Configuraría el cluster Hadoop con un sistema de colas de recursos. Las colas asociadas a los procesos productivos recibirían una mayor prioridad (mayor porcentaje de recursos) mientras que las colas para análisis exploratorio tendrían un límite inferior de recursos.
 
-**Políticas de SLA:**
-    Definiría SLAs claros que establezcan tiempos garantizados de finalización para los procesos productivos. Los trabajos de análisis exploratorio se ejecutarían únicamente cuando los recursos productivos no estén saturados.
+- Definiría SLAs claros que establezcan tiempos garantizados de finalización para los procesos productivos. Los trabajos de análisis exploratorio se ejecutarían únicamente cuando los recursos productivos no estén saturados.
 
 **b) Estrategia para administrar procesos intensivos en CPU y memoria durante el día:**
 
-**Ejecución en ventanas de tiempo:**
-    Programaría los procesos productivos en horarios con baja demanda (por ejemplo, durante la noche o temprano en la mañana). Esto reduce la competencia con otros procesos del clúster.
+- Programaría los procesos productivos en horarios con baja demanda (por ejemplo, durante la noche o temprano en la mañana). Esto reduce la competencia con otros procesos del clúster.
 
-**Cuotas de uso de recursos:**
-    Establecería cuotas estrictas para cada equipo/proceso, asegurando que los procesos productivos tengan garantizados los recursos necesarios.
+- Establecería cuotas estrictas para cada equipo/proceso, asegurando que los procesos productivos tengan garantizados los recursos necesarios.
 
 **Herramientas de scheduling:** 
 
@@ -77,25 +73,19 @@ Aquí está el histograma generado:
 
 ### Posibles causas del problema:
 
-**Fragmentación excesiva de datos:**
-    La tabla podría contener demasiados archivos pequeños, lo que afecta el rendimiento de las consultas debido al overhead en la lectura de metadatos.
+- La tabla podría contener demasiados archivos pequeños, lo que afecta el rendimiento de las consultas debido al overhead en la lectura de metadatos.
 
-**Falta de particionamiento adecuado:**
-    Si los datos no están particionados correctamente, las consultas escanean más datos de los necesarios.
+- Si los datos no están particionados correctamente, las consultas escanean más datos de los necesarios.
 
-**Falta de índices o metadatos optimizados:**
-    Ausencia de índices secundarios o estadísticas actualizadas en el Data Lake para acelerar las consultas.
+- Ausencia de índices secundarios o estadísticas actualizadas en el Data Lake para acelerar las consultas.
 
 ### Soluciones sugeridas:
 
-**Optimización del particionamiento:**
-   Asegurarse de que la tabla esté particionada por campos de **baja cardinalidad** y que sean frecuentemente utilizados en las consultas (como IDs o categorías relevantes). Esto permite aprovechar el **partition pruning** al leer las tablas Delta, mejorando así el rendimiento de las consultas al reducir el número de particiones que se deben escanear.
+- Asegurarse de que la tabla esté particionada por campos de **baja cardinalidad** y que sean frecuentemente utilizados en las consultas (como IDs o categorías relevantes). Esto permite aprovechar el **partition pruning** al leer las tablas Delta, mejorando así el rendimiento de las consultas al reducir el número de particiones que se deben escanear.
 
-**Actualización de estadísticas, Compaction y Z-Ordering:**
-   En el caso de las tablas Delta, se puede ejecutar el comando `OPTIMIZE` para consolidar archivos pequeños y mejorar el rendimiento de las consultas. Este proceso optimiza el almacenamiento y facilita la lectura de los datos. Además, aplicar **Z-Ordering** en las columnas que más se usan en los filtros de las consultas puede mejorar significativamente el rendimiento, ya que organiza los datos en disco de manera que se minimiza el costo de búsqueda de los registros relevantes.
+- En el caso de las tablas Delta, se puede ejecutar el comando `OPTIMIZE` para consolidar archivos pequeños y mejorar el rendimiento de las consultas. Este proceso optimiza el almacenamiento y facilita la lectura de los datos. Además, aplicar **Z-Ordering** en las columnas que más se usan en los filtros de las consultas puede mejorar significativamente el rendimiento, ya que organiza los datos en disco de manera que se minimiza el costo de búsqueda de los registros relevantes.
 
-**Separación de workloads:**
-   Si es posible, separar el flujo transaccional y el de consultas en diferentes capas del Data Lake (raw, curated, data_product). Esta separación ayuda a que la carga de trabajo sea menor, ya que las consultas no afectarán directamente a las operaciones transaccionales, y viceversa. Además, optimiza el rendimiento al permitir una mayor especialización y escalabilidad en cada capa.
+- Si es posible, separar el flujo transaccional y el de consultas en diferentes capas del Data Lake (raw, curated, data_product). Esta separación ayuda a que la carga de trabajo sea menor, ya que las consultas no afectarán directamente a las operaciones transaccionales, y viceversa. Además, optimiza el rendimiento al permitir una mayor especialización y escalabilidad en cada capa.
 
 ## Pregunta 3: Configuraciones para reservar la mitad del clúster en Spark
 
