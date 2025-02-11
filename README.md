@@ -1,126 +1,124 @@
+# Exercise 1 - Spark + Docker
 
-# Ejercicio 1 - Spark + Docker
+## Prerequisites
 
-## Requisitos Previos
+- Docker and Docker Compose installed on your machine.
 
-- Docker y Docker Compose instalados en tu máquina.
+## Build and Start the Containers
 
-## Construir e Iniciar los Contenedores
-
-El primer paso es construir e iniciar los contenedores necesarios para el proyecto. Para hacerlo, ejecuta el siguiente comando en tu terminal:
+The first step is to build and start the necessary containers for the project. To do this, run the following command in your terminal:
 
 ```bash
 make down && docker-compose up --build
 ```
 
-## Ejecutar el Cálculo de Facturación de SMS (Punto 1)
+## Run the SMS Billing Calculation (Point 1)
 
-Una vez que los contenedores estén en funcionamiento, puedes ejecutar la aplicación para calcular la facturación total de SMS, como se describe en el Punto 1. Para hacerlo, ejecuta el siguiente comando en tu terminal:
+Once the containers are running, you can execute the application to calculate the total SMS billing, as described in Point 1. To do this, run the following command in your terminal:
 
 ```bash
 make submit app=src/events_sms.py
 ```
-**La facturación total de SMS es: $391,367.00**
+**The total SMS billing amount is: $391,367.00**
 
-## Ejecutar el Cálculo de los Usuarios Principales (Punto 2)
+## Run the Top Users Calculation (Point 2)
 
-Después de calcular la facturación total de SMS en el Punto 1, el siguiente paso es generar un conjunto de datos que contenga los 100 usuarios con los mayores montos de facturación de SMS, junto con sus IDs hash y el monto total facturado a cada uno.
+After calculating the total SMS billing in Point 1, the next step is to generate a dataset containing the top 100 users with the highest SMS billing amounts, along with their hashed IDs and the total amount billed to each.
 
-Para ejecutar esto, utiliza el siguiente comando en tu terminal:
+To execute this, use the following command in your terminal:
 
 ```bash
 make submit app=src/top_users.py
 ```
 
-![Conjunto de Datos de Usuarios Principales](images/top_users_dataset.png)
+![Top Users Dataset](images/top_users_dataset.png)
 
-## Visualizar el Histograma de Llamadas por Hora (Punto 3)
+## Visualize the Calls Per Hour Histogram (Point 3)
 
-Para ejecutarlo, utiliza el siguiente comando en tu terminal:
+To execute it, use the following command in your terminal:
 
 ```bash
 make submit app=src/calls_per_hour_histogram.py
 ```
 
-Aquí está el histograma generado:
+Here is the generated histogram:
 
-![Histograma de Llamadas por Hora](images/calls_per_hour_histogram.png)
+![Calls Per Hour Histogram](images/calls_per_hour_histogram.png)
 
+# Exercise 2 - General Questions
 
-# Ejercicio 2 - Preguntas generales
+## Question 1: Process Prioritization and Management in a Hadoop Cluster
 
-## Pregunta 1: Priorización y administración de procesos en un clúster Hadoop
+**a) How would you prioritize production processes over exploratory analysis processes?**
 
-**a) ¿Cómo priorizaría los procesos productivos sobre los procesos de análisis exploratorios?**
+- Configure the Hadoop cluster with a resource queue system. Queues associated with production processes would receive a higher priority (a higher percentage of resources), while queues for exploratory analysis would have a lower resource limit.
 
-- Configuraría el cluster Hadoop con un sistema de colas de recursos. Las colas asociadas a los procesos productivos recibirían una mayor prioridad (mayor porcentaje de recursos) mientras que las colas para análisis exploratorio tendrían un límite inferior de recursos.
+- Define clear SLAs that establish guaranteed completion times for production processes. Exploratory analysis jobs would run only when production resources are not saturated.
 
-- Definiría SLAs claros que establezcan tiempos garantizados de finalización para los procesos productivos. Los trabajos de análisis exploratorio se ejecutarían únicamente cuando los recursos productivos no estén saturados.
+**b) Strategy for managing CPU and memory-intensive processes during the day:**
 
-**b) Estrategia para administrar procesos intensivos en CPU y memoria durante el día:**
+- Schedule production processes during low-demand hours (e.g., at night or early in the morning). This reduces competition with other cluster processes.
 
-- Programaría los procesos productivos en horarios con baja demanda (por ejemplo, durante la noche o temprano en la mañana). Esto reduce la competencia con otros procesos del clúster.
+- Set strict quotas for each team/process, ensuring that production processes have guaranteed resources.
 
-- Establecería cuotas estrictas para cada equipo/proceso, asegurando que los procesos productivos tengan garantizados los recursos necesarios.
-
-**Herramientas de scheduling:** 
+**Scheduling tools:**
 
 - Apache Airflow
 - Prefect
-- dagster
+- Dagster
 
-## Pregunta 2: Tabla de Data Lake con alta transaccionalidad
+## Question 2: High Transactional Data Lake Table
 
-### Posibles causas del problema:
+### Possible Causes of the Problem:
 
-- La tabla podría contener demasiados archivos pequeños, lo que afecta el rendimiento de las consultas debido al overhead en la lectura de metadatos.
+- The table may contain too many small files, affecting query performance due to metadata read overhead.
 
-- Si los datos no están particionados correctamente, las consultas escanean más datos de los necesarios.
+- If the data is not properly partitioned, queries scan more data than necessary.
 
-- Ausencia de índices secundarios o estadísticas actualizadas en el Data Lake para acelerar las consultas.
+- Lack of secondary indexes or updated statistics in the Data Lake to accelerate queries.
 
-### Soluciones sugeridas:
+### Suggested Solutions:
 
-- Asegurarse de que la tabla esté particionada por campos de **baja cardinalidad** y que sean frecuentemente utilizados en las consultas (como IDs o categorías relevantes). Esto permite aprovechar el **partition pruning** al leer las tablas Delta, mejorando así el rendimiento de las consultas al reducir el número de particiones que se deben escanear.
+- Ensure the table is partitioned by **low cardinality** fields that are frequently used in queries (such as relevant IDs or categories). This allows for **partition pruning**, improving query performance by reducing the number of partitions that need to be scanned.
 
-- En el caso de las tablas Delta, se puede ejecutar el comando `OPTIMIZE` para consolidar archivos pequeños y mejorar el rendimiento de las consultas. Este proceso optimiza el almacenamiento y facilita la lectura de los datos. Además, aplicar **Z-Ordering** en las columnas que más se usan en los filtros de las consultas puede mejorar significativamente el rendimiento, ya que organiza los datos en disco de manera que se minimiza el costo de búsqueda de los registros relevantes.
+- For Delta tables, run the `OPTIMIZE` command to consolidate small files and improve query performance. Additionally, applying **Z-Ordering** on columns frequently used in query filters can significantly enhance performance by organizing data on disk to minimize lookup costs.
 
-- Si es posible, separar el flujo transaccional y el de consultas en diferentes capas del Data Lake (raw, curated, data_product). Esta separación ayuda a que la carga de trabajo sea menor, ya que las consultas no afectarán directamente a las operaciones transaccionales, y viceversa. Además, optimiza el rendimiento al permitir una mayor especialización y escalabilidad en cada capa.
+- If possible, separate the transactional and query workloads into different layers of the Data Lake (raw, curated, data_product). This separation helps reduce workload contention since queries will not directly impact transactional operations and vice versa. Additionally, it optimizes performance by allowing greater specialization and scalability at each layer.
 
-## Pregunta 3: Configuraciones para reservar la mitad del clúster en Spark
+## Question 3: Configurations to Reserve Half of the Cluster in Spark
 
-Configuraciones para Spark:
-Configurar recursos en SparkSession:
+### Configuring Resources in SparkSession:
 
-Un clúster Hadoop con 3 nodos, 50 GB de memoria y 12 cores por nodo (150 GB y 36 cores totales).
+A Hadoop cluster with 3 nodes, 50 GB of memory, and 12 cores per node (150 GB and 36 cores total).
 
-- Cores totales asignados = 18 cores (50% del clúster).
-- Memoria total asignada = 75 GB (50% de memoria disponible).
+- Total assigned cores = 18 cores (50% of the cluster).
+- Total assigned memory = 75 GB (50% of available memory).
 
 ```python
 SparkSession.builder \
     .appName("SparkJob") \
-    .config("spark.executor.instances", 6) \  # Total de cores 18 / Total de nodos 3
-    .config("spark.executor.cores", 3) \     # Total de cores 18 / Total de executors 6
-    .config("spark.executor.memory", "12g") \ # Total de memoria 75 / Total de executors 6
-    .config("spark.dynamicAllocation.enabled", "false") \  # Establece los recursos como fijos, no dinámicos
+    .config("spark.executor.instances", 6) \  # Total cores 18 / Total nodes 3
+    .config("spark.executor.cores", 3) \     # Total cores 18 / Total executors 6
+    .config("spark.executor.memory", "12g") \ # Total memory 75 / Total executors 6
+    .config("spark.dynamicAllocation.enabled", "false") \  # Set resources as fixed, not dynamic
     .getOrCreate()
 ```
 
-- Número de executors (`spark.executor.instances`): Se asignan 6 executors, lo que permite utilizar todos los 18 cores asignados (3 cores por executor).
+- **Number of executors (`spark.executor.instances`)**: 6 executors are assigned, utilizing all 18 assigned cores (3 cores per executor).
 
-- Cores por executor (`spark.executor.cores`): A cada executor se le asignan 3 cores (esto asegura que el trabajo esté bien distribuido entre los executors, sin que cada uno utilice más cores de los necesarios).
+- **Cores per executor (`spark.executor.cores`)**: Each executor is assigned 3 cores (ensuring balanced workload distribution among executors without overloading any).
 
-- Memoria por executor (`spark.executor.memory`): Se asignan 12 GB de memoria a cada executor (esto permite usar toda la memoria asignada de 75 GB de manera eficiente).
+- **Memory per executor (`spark.executor.memory`)**: Each executor is assigned 12 GB of memory (effectively utilizing the allocated 75 GB of memory).
 
-### Limitar Recursos por Cola de YARN
+### Limiting Resources via YARN Queue Management
 
-Si utilizamos **YARN** como administrador de recursos en tu clúster Hadoop, puedes configurar colas con límites específicos para diferentes tipos de trabajos, como trabajos productivos y exploratorios. Esto te permite gestionar los recursos de manera eficiente y garantizar que los trabajos críticos no se vean interrumpidos por procesos no productivos.
+If **YARN** is used as the resource manager in your Hadoop cluster, you can configure queues with specific limits for different types of jobs, such as production and exploratory jobs. This helps efficiently manage resources and ensures that critical jobs are not interrupted by non-production processes.
 
-Las configuraciones clave incluyen:
+Key configurations include:
 
-- **memory-mb**: Define la memoria máxima que puede ser asignada a los trabajos de una cola específica. Al establecer un límite en la memoria, puedes evitar que un trabajo agote todos los recursos disponibles, asegurando que haya recursos suficientes para otros trabajos.
-  
-- **vcores**: Establece el número máximo de núcleos virtuales que se pueden asignar a los trabajos dentro de una cola. Esto es crucial para evitar la sobrecarga de los nodos y mantener un equilibrio en el uso de los recursos de procesamiento.
+- **memory-mb**: Defines the maximum memory that can be allocated to jobs in a specific queue. Setting a memory limit prevents a single job from consuming all available resources, ensuring that enough resources remain for other jobs.
 
-Configurar correctamente las colas en YARN te permite separar las cargas de trabajo según su prioridad, garantizando que los trabajos productivos no se vean afectados por procesos exploratorios o de prueba.
+- **vcores**: Specifies the maximum number of virtual cores that can be assigned to jobs within a queue. This is crucial for preventing node overload and maintaining a balanced use of processing resources.
+
+Properly configuring YARN queues allows workloads to be separated by priority, ensuring that production jobs are not affected by exploratory or test processes.
+
